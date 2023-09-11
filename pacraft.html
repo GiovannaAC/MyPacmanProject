@@ -8,33 +8,206 @@
         canvas {
             display: block;
             margin: auto;
-        
         }
     </style>
 </head>
 <body>
-
     <canvas width="800" height="600" id="myCanvas"></canvas>
-
     <script>
-        const canvas = document.getElementById("myCanvas");
-        const ctx = canvas.getContext("2d");
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        var dir = 0, speed = 10;
+        let score = 0;
+        let pause = false;
         let fondoImage = new Image();
+        let steveImage = new Image();
+        let diamondImage = new Image();
+   
 
         fondoImage.src = "imgs/fondo.jpeg";
+        steveImage.src = "imgs/steve.jpg";
+        diamondImage.src = "imgs/diamond.png";
+   
+
+        class Cuadrado {
+            constructor(x, y, w, h, c) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.c = c;
+            }
+
+            paint(ctx) {
+                ctx.fillStyle = this.c;
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                ctx.strokeRect(this.x, this.y, this.w, this.h);
+            }
+
+            seTocan(otro) {
+                if (this.x < otro.x + otro.w &&
+                    this.x + this.w > otro.x &&
+                    this.y < otro.y + otro.h &&
+                    this.y + this.h > otro.y) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        class Obstaculo {
+            constructor(x, y, imagen) {
+                this.x = x;
+                this.y = y;
+                this.w = 30;
+                this.h = 30;
+                this.imagen = new Image();
+                this.imagen.src = imagen;
+            }
+
+            paint(ctx) {
+                ctx.drawImage(this.imagen, this.x, this.y, this.w, this.h); 
+            }
+
+            getBoundingBox() {
+                return new Cuadrado(this.x, this.y, this.w, this.h);
+            }
+        }
+
+        const player = new Cuadrado(225, 225, 50, 50, "white");
+        const target = new Cuadrado(randomInteger(800), randomInteger(600), 30, 30);
+
+        let obstaculos = [];
+        obstaculos.push(new Obstaculo(90, 370, "imgs/cesped.jpg"));
+        obstaculos.push(new Obstaculo(90, 50, "imgs/cesped.jpg"));
+        obstaculos.push(new Obstaculo(90, 160, "imgs/cesped.jpg"));
+        obstaculos.push(new Obstaculo(370, 160, "imgs/cesped.jpg"));
+
+        window.requestAnimationFrame = (function () {
+            return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                function (callback) {
+                    window.setTimeout(callback, 17);
+                };
+        }());
+
+        document.addEventListener("keydown", (e) => {
+            if (!pause) {
+                switch (e.keyCode) {
+                    case 87:
+                        dir = 1;
+                        break;
+                    case 83:
+                        dir = 2;
+                        break;
+                    case 68:
+                        dir = 3;
+                        break;
+                    case 65:
+                        dir = 4;
+                        break;
+                }
+            }
+
+            switch (e.keyCode) {
+                case 32:
+                    pause = !pause;
+                    break;
+            }
+        });
+
+        function update() {
+            if (!pause) {
+                if (dir == 1) {
+                    player.y -= speed;
+                    if (player.y < 0) {
+                        player.y = 0;
+                    }
+                }
+
+                if (dir == 2) {
+                    player.y += speed;
+                    if (player.y + player.h > canvas.height) {
+                        player.y = canvas.height - player.h;
+                    }
+                }
+
+                if (dir == 3) {
+                    player.x += speed;
+                    if (player.x + player.w > canvas.width) {
+                        player.x = canvas.width - player.w;
+                    }
+                }
+
+                if (dir == 4) {
+                    player.x -= speed;
+                    if (player.x < 0) {
+                        player.x = 0;
+                    }
+                }
+
+                if (player.seTocan(target)) {
+                    target.x = randomInteger(canvas.width - target.w);
+                    target.y = randomInteger(canvas.height - target.h);
+                    score += 10;
+                    sonido.play();
+                }
+
+                for (var i = obstaculos.length - 1; i >= 0; i--) {
+                    if (player.seTocan(obstaculos[i].getBoundingBox())) {
+                        dir = 0;
+                    }
+                }
+            }
+
+            player.c = randomRgbColor();
+            paint();
+
+            window.requestAnimationFrame(update);
+        }
 
         function paint() {
             ctx.drawImage(fondoImage, 0, 0, canvas.width, canvas.height);
-      
+
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText("SCORE: " + score, 5, 20);
+
+            ctx.drawImage(steveImage, player.x, player.y, player.w, player.h);
+
+            ctx.drawImage(diamondImage, target.x, target.y, target.w, target.h); 
+
+            for (var i = obstaculos.length - 1; i >= 0; i--) {
+                obstaculos[i].paint(ctx);
+            }
+
+            if (pause) {
+                ctx.fillStyle = "rgba(255, 255,255, 0.5)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.font = "40px Times New Roman";
+                ctx.fillStyle = "white";
+                ctx.fillText("P A U S E", canvas.width / 2 - 80, canvas.height / 2);
+            }
         }
 
-        window.onload = function() {
+        update();
+
+        window.onload = function () {
             paint();
-
         }
 
-   
-    
+        function randomRgbColor() {
+            let r = randomInteger(255);
+            let g = randomInteger(255);
+            let b = randomInteger(255);
+            return `rgba(${r},${g},${b},0.5)`;
+        }
+
+        function randomInteger(max) {
+            return Math.floor(Math.random() * (max + 1));
+        }
     </script>
 </body>
 </html>
