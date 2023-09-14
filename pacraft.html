@@ -3,211 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PACRAFT</title>
+    <title> PACRAFT </title>
     <style>
+        body {
+            background-image: url('imgs/fondo.jpeg');
+            background-size: cover; 
+            background-repeat: no-repeat; 
+        }
+
         canvas {
             display: block;
             margin: auto;
         }
     </style>
 </head>
+
 <body>
-    <canvas width="800" height="600" id="myCanvas"></canvas>
+    <canvas width="600" height="640" id="myCanvas"></canvas>
+        
     <script>
         var canvas = document.getElementById("myCanvas");
         var ctx = canvas.getContext("2d");
-        var dir = 0, speed = 10;
-        let score = 0;
-        let pause = false;
+        const centerX = canvas.width / 2; 
+        const centerY = canvas.height / 2;
         let fondoImage = new Image();
-        let steveImage = new Image();
-        let diamondImage = new Image();
-   
 
-        fondoImage.src = "imgs/fondo.jpeg";
-        steveImage.src = "imgs/steve.jpg";
-        diamondImage.src = "imgs/diamond.png";
-   
+        fondoImage.onload = function () {
+            paint(); 
+        };
 
-        class Cuadrado {
-            constructor(x, y, w, h, c) {
-                this.x = x;
-                this.y = y;
-                this.w = w;
-                this.h = h;
-                this.c = c;
+        fondoImage.src = "imgs/pasto.jpg";
+
+        class Boundary {
+            static width = 20;
+            static height = 20;
+            constructor({ position, image }) {
+                this.position = position;
+                this.width = 20;
+                this.height = 20;
+                
             }
-
-            paint(ctx) {
-                ctx.fillStyle = this.c;
-                ctx.fillRect(this.x, this.y, this.w, this.h);
-                ctx.strokeRect(this.x, this.y, this.w, this.h);
-            }
-
-            seTocan(otro) {
-                if (this.x < otro.x + otro.w &&
-                    this.x + this.w > otro.x &&
-                    this.y < otro.y + otro.h &&
-                    this.y + this.h > otro.y) {
-                    return true;
-                }
-                return false;
+            draw() {
+                ctx.fillStyle = "gray";
+                ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
             }
         }
 
-        class Obstaculo {
-            constructor(x, y, imagen) {
-                this.x = x;
-                this.y = y;
-                this.w = 30;
-                this.h = 30;
-                this.imagen = new Image();
-                this.imagen.src = imagen;
+        class Player {
+            constructor({ position, velocity, image }) {
+                this.position = position;
+                this.velocity = velocity;
+                this.image = image;
+                this.width = 40;
+                this.height = 40;
             }
 
-            paint(ctx) {
-                ctx.drawImage(this.imagen, this.x, this.y, this.w, this.h); 
+            draw() {
+                ctx.drawImage(this.image, this.position.x - this.width / 2, this.position.y - this.height / 2, this.width, this.height);
             }
 
-            getBoundingBox() {
-                return new Cuadrado(this.x, this.y, this.w, this.h);
+            update() {
+                this.position.x += this.velocity.x;
+                this.position.y += this.velocity.y;
             }
-        }
+       }
 
-        const player = new Cuadrado(225, 225, 50, 50, "white");
-        const target = new Cuadrado(randomInteger(800), randomInteger(600), 30, 30);
+        const map = [
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-']    
+        ]
 
-        let obstaculos = [];
-        obstaculos.push(new Obstaculo(90, 370, "imgs/cesped.jpg"));
-        obstaculos.push(new Obstaculo(90, 50, "imgs/cesped.jpg"));
-        obstaculos.push(new Obstaculo(90, 160, "imgs/cesped.jpg"));
-        obstaculos.push(new Obstaculo(370, 160, "imgs/cesped.jpg"));
+        const boundaries = []
 
-        window.requestAnimationFrame = (function () {
-            return window.requestAnimationFrame ||
-                window.webkitRequestAnimationFrame ||
-                window.mozRequestAnimationFrame ||
-                function (callback) {
-                    window.setTimeout(callback, 17);
-                };
-        }());
-
-        document.addEventListener("keydown", (e) => {
-            if (!pause) {
-                switch (e.keyCode) {
-                    case 87:
-                        dir = 1;
-                        break;
-                    case 83:
-                        dir = 2;
-                        break;
-                    case 68:
-                        dir = 3;
-                        break;
-                    case 65:
-                        dir = 4;
-                        break;
-                }
-            }
-
-            switch (e.keyCode) {
-                case 32:
-                    pause = !pause;
-                    break;
-            }
-        });
-
-        function update() {
-            if (!pause) {
-                if (dir == 1) {
-                    player.y -= speed;
-                    if (player.y < 0) {
-                        player.y = 0;
-                    }
-                }
-
-                if (dir == 2) {
-                    player.y += speed;
-                    if (player.y + player.h > canvas.height) {
-                        player.y = canvas.height - player.h;
-                    }
-                }
-
-                if (dir == 3) {
-                    player.x += speed;
-                    if (player.x + player.w > canvas.width) {
-                        player.x = canvas.width - player.w;
-                    }
-                }
-
-                if (dir == 4) {
-                    player.x -= speed;
-                    if (player.x < 0) {
-                        player.x = 0;
-                    }
-                }
-
-                if (player.seTocan(target)) {
-                    target.x = randomInteger(canvas.width - target.w);
-                    target.y = randomInteger(canvas.height - target.h);
-                    score += 10;
-                    sonido.play();
-                }
-
-                for (var i = obstaculos.length - 1; i >= 0; i--) {
-                    if (player.seTocan(obstaculos[i].getBoundingBox())) {
-                        dir = 0;
-                    }
-                }
-            }
-
-            player.c = randomRgbColor();
+        const playerImage = new Image();
+        playerImage.onload = function() {
             paint();
+        };
+        playerImage.src = "imgs/steve.jpg";
 
-            window.requestAnimationFrame(update);
+        const player = new Player({
+            position: {
+                x: centerX,
+                y: centerY
+            },
+            velocity: {
+                x: 0,
+                y: 0
+            },
+            image: playerImage
+        })
+
+        map.forEach((row, i) => {
+            row.forEach((symbol, j) => {
+                console.log(symbol);
+                switch (symbol) {
+                    case '-':
+                        boundaries.push(
+                            new Boundary({
+                                position: {
+                                    x: Boundary.width * j,
+                                    y: Boundary.height * i
+                                },
+                                
+                            })
+                        );
+                        break;
+                    }
+                })
+            })
+
+            function paint() {
+                ctx.drawImage(fondoImage, 0, 0, canvas.width, canvas.height);
+
+                boundaries.forEach((boundary) => {
+                    boundary.draw();
+                });
+
+                player.draw()
+
         }
 
-        function paint() {
-            ctx.drawImage(fondoImage, 0, 0, canvas.width, canvas.height);
 
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "white";
-            ctx.fillText("SCORE: " + score, 5, 20);
 
-            ctx.drawImage(steveImage, player.x, player.y, player.w, player.h);
-
-            ctx.drawImage(diamondImage, target.x, target.y, target.w, target.h); 
-
-            for (var i = obstaculos.length - 1; i >= 0; i--) {
-                obstaculos[i].paint(ctx);
-            }
-
-            if (pause) {
-                ctx.fillStyle = "rgba(255, 255,255, 0.5)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.font = "40px Times New Roman";
-                ctx.fillStyle = "white";
-                ctx.fillText("P A U S E", canvas.width / 2 - 80, canvas.height / 2);
-            }
-        }
-
-        update();
-
-        window.onload = function () {
-            paint();
-        }
-
-        function randomRgbColor() {
-            let r = randomInteger(255);
-            let g = randomInteger(255);
-            let b = randomInteger(255);
-            return `rgba(${r},${g},${b},0.5)`;
-        }
-
-        function randomInteger(max) {
-            return Math.floor(Math.random() * (max + 1));
-        }
     </script>
 </body>
 </html>
