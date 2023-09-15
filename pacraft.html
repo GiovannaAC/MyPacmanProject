@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> PACRAFT </title>
+    <title>PACRAFT</title>
     <style>
         body {
-            background-image: url('imgs/fondo.jpeg');
+            background-image: url('imgs/lava.jpg');
             background-size: cover; 
             background-repeat: no-repeat; 
         }
@@ -32,7 +32,7 @@
             paint(); 
         };
 
-        fondoImage.src = "imgs/pasto.jpg";
+        fondoImage.src = "imgs/piedraFondo.jpg";
 
         class Boundary {
             static width = 20;
@@ -44,7 +44,7 @@
                 
             }
             draw() {
-                ctx.fillStyle = "gray";
+                ctx.fillStyle = "#6CDFCE";
                 ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
             }
         }
@@ -66,7 +66,44 @@
                 this.position.x += this.velocity.x;
                 this.position.y += this.velocity.y;
             }
-       }
+        }
+
+        const boundaries = []
+
+        const playerImage = new Image();
+        playerImage.onload = function() {
+            paint();
+        };
+        playerImage.src = "imgs/steve.jpg";
+
+        const player = new Player({
+            position: {
+                x: centerX,
+                y: centerY
+            },
+            velocity: {
+                x: 0,
+                y: 0
+            },
+            image: playerImage
+        })
+
+        const keys = {
+            w: {
+                pressed: false
+            },
+            a: {
+                pressed: false
+            },
+            s: {
+                pressed: false
+            },
+            d: {
+                pressed: false
+            }
+        }
+
+        let lastKey = ''
 
         const map = [
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -101,26 +138,8 @@
             ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-']    
         ]
 
-        const boundaries = []
 
-        const playerImage = new Image();
-        playerImage.onload = function() {
-            paint();
-        };
-        playerImage.src = "imgs/steve.jpg";
-
-        const player = new Player({
-            position: {
-                x: centerX,
-                y: centerY
-            },
-            velocity: {
-                x: 0,
-                y: 0
-            },
-            image: playerImage
-        })
-
+       
         map.forEach((row, i) => {
             row.forEach((symbol, j) => {
                 console.log(symbol);
@@ -136,23 +155,82 @@
                             })
                         );
                         break;
-                    }
-                })
+                }
             })
+        })
 
-            function paint() {
-                ctx.drawImage(fondoImage, 0, 0, canvas.width, canvas.height);
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(fondoImage, 0, 0, canvas.width, canvas.height); 
+            boundaries.forEach((boundary) => {
+                boundary.draw();
+                if (player.position.x - player.width / 2 + player.velocity.x <= boundary.position.x + boundary.width &&
+                    player.position.x + player.width / 2 + player.velocity.x >= boundary.position.x &&
+                    player.position.y - player.height / 2 + player.velocity.y <= boundary.position.y + boundary.height &&
+                    player.position.y + player.height / 2 + player.velocity.y >= boundary.position.y) {
+                    console.log('we are colling')
+                        player.velocity.x = 0
+                        player.velocity.y = 0
+                    }
+            });
 
-                boundaries.forEach((boundary) => {
-                    boundary.draw();
-                });
+            player.update();
+            player.draw();
 
-                player.draw()
-
+            //player.velocity.x = 0
+            //player.velocity.y = 0
+  
+            if (keys.w.pressed && lastKey === 'w') {
+                player.velocity.y = -5;
+            } else if (keys.a.pressed && lastKey === 'a') {
+                player.velocity.x = -5;
+            } else if (keys.s.pressed && lastKey === 's') {
+                player.velocity.y = 5;
+            } else if (keys.d.pressed && lastKey === 'd') {
+                player.velocity.x = 5;
+            } 
         }
 
+        animate();
 
+        addEventListener('keydown', ({ key }) => {
+            switch (key) {
+                case 'w':
+                    keys.w.pressed = true;
+                    lastKey = 'w'
+                    break;
+                case 'a':
+                    keys.a.pressed = true;
+                    lastKey = 'a'
+                    break;
+                case 's':
+                    keys.s.pressed = true;
+                    lastKey = 's'
+                    break;
+                case 'd':
+                    keys.d.pressed = true;
+                    lastKey = 'd'
+                    break;
+            }
+        });
 
+        addEventListener('keyup', ({ key }) => {
+            switch (key) {
+                case 'w':
+                    keys.w.pressed = false;
+                    break;
+                case 'a':
+                    keys.a.pressed = false;
+                    break;
+                case 's':
+                    keys.s.pressed = false;
+                    break;
+                case 'd':
+                    keys.d.pressed = false;
+                    break;
+            }
+        });
     </script>
 </body>
 </html>
