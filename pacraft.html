@@ -325,10 +325,31 @@
                 }
             } 
 
-            pellets.forEach(pellet => {
-                pellet.draw()
-            })
+            for (let i = pellets.length - 1; 0 < i; i--) {
+                const pellet = pellets[i]
 
+                pellet.draw();
+                const playerLeft = player.position.x;
+                const playerRight = player.position.x + player.width;
+                const playerTop = player.position.y;
+                const playerBottom = player.position.y + player.height;
+
+                const pelletLeft = pellet.position.x;
+                const pelletRight = pellet.position.x + pellet.width;
+                const pelletTop = pellet.position.y;
+                const pelletBottom = pellet.position.y + pellet.height;
+
+            
+                if (
+                    playerLeft < pelletRight &&
+                    playerRight > pelletLeft &&
+                    playerTop < pelletBottom &&
+                    playerBottom > pelletTop
+                ) {
+                    console.log('touching');
+                    pellets.splice(i, 1);
+                }
+            }
 
             boundaries.forEach((boundary) => {
                 boundary.draw();
